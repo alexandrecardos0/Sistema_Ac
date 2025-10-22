@@ -10,6 +10,30 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+@layer base {
+    body {
+        @apply bg-slate-950 text-slate-100 antialiased;
+    }
+}
+
+@layer components {
+    .surface-card {
+        @apply rounded-xl border border-slate-800/70 bg-slate-900/70 shadow-xl shadow-slate-950/50 backdrop-blur-sm;
+    }
+
+    .surface-section {
+        @apply overflow-hidden rounded-xl border border-slate-800/70 bg-slate-950/60 shadow-lg shadow-slate-950/40;
+    }
+
+    .surface-table {
+        @apply divide-y divide-slate-800/70 bg-slate-950/60;
+    }
+
+    .input-dark {
+        @apply rounded-lg border border-slate-700/80 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 transition focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40;
+    }
+}
+
 .menu-lateral {
-    box-shadow: 5px 0px 20px -3px rgba(0, 0, 0, 0.5);
+    box-shadow: 8px 0 30px -10px rgba(12, 74, 110, 0.6);
 }

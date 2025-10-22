@@ -9,6 +9,8 @@ use App\Models\AvariaMaterial;
 use App\Models\RegistroHoras;
 use Illuminate\Support\Facades\Schema;
 use App\Models\RelatorioMensal;
+use App\Models\CompraMaterial;
+use App\Models\GastoVeiculo;
 
 class Dashboard extends Component
 {
@@ -98,7 +100,29 @@ class Dashboard extends Component
             ->whereMonth('created_at', $mes)
             ->sum('valor_conserto');
 
-        $valorSaidasMes = $valorFuncionariosMes + $valorAvariasMes;
+        $valorComprasMes = (float) CompraMaterial::where(function ($query) use ($ano, $mes) {
+                $query->whereYear('data_compra', $ano)
+                    ->whereMonth('data_compra', $mes);
+            })
+            ->orWhere(function ($query) use ($ano, $mes) {
+                $query->whereNull('data_compra')
+                    ->whereYear('created_at', $ano)
+                    ->whereMonth('created_at', $mes);
+            })
+            ->sum('valor_total');
+
+        $valorVeiculosMes = (float) GastoVeiculo::where(function ($query) use ($ano, $mes) {
+                $query->whereYear('data_gasto', $ano)
+                    ->whereMonth('data_gasto', $mes);
+            })
+            ->orWhere(function ($query) use ($ano, $mes) {
+                $query->whereNull('data_gasto')
+                    ->whereYear('created_at', $ano)
+                    ->whereMonth('created_at', $mes);
+            })
+            ->sum('valor');
+
+        $valorSaidasMes = $valorFuncionariosMes + $valorAvariasMes + $valorComprasMes + $valorVeiculosMes;
         $saldoMes = $valorObrasMes - $valorSaidasMes;
 
         $payload = [
@@ -111,6 +135,8 @@ class Dashboard extends Component
             'valor_obras' => $valorObrasMes,
             'valor_funcionarios' => $valorFuncionariosMes,
             'valor_avarias' => $valorAvariasMes,
+            'valor_compras' => $valorComprasMes,
+            'valor_veiculos' => $valorVeiculosMes,
             'valor_saidas' => $valorSaidasMes,
             'saldo' => $saldoMes,
             'gerado_em' => now(),
@@ -129,6 +155,8 @@ class Dashboard extends Component
             'valorObrasMes' => $valorObrasMes,
             'valorFuncionariosMes' => $valorFuncionariosMes,
             'valorAvariasMes' => $valorAvariasMes,
+            'valorComprasMes' => $valorComprasMes,
+            'valorVeiculosMes' => $valorVeiculosMes,
             'valorSaidasMes' => $valorSaidasMes,
             'saldoMes' => $saldoMes,
         ])->layout('layouts.app');

@@ -16,11 +16,18 @@ class RegistroHoras extends Model
         'dias_selecionados',
         'valor_hora',
         'vale',
+        'vales_detalhes',
         'total',
+        'status',
+        'periodo_inicio',
+        'periodo_fim',
     ];
 
     protected $casts = [
         'dias_selecionados' => 'array',
+        'vales_detalhes' => 'array',
+        'periodo_inicio' => 'date',
+        'periodo_fim' => 'date',
     ];
 
     public function funcionario()

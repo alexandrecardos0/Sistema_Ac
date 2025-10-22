@@ -9,6 +9,8 @@ use App\Livewire\Materiais;
 use App\Livewire\RelatoriosMensais;
 use App\Livewire\RelatorioMensalShow;
 use App\Livewire\RelatoriosPagamentos;
+use App\Livewire\Comprar;
+use App\Livewire\GastosVeiculos;
 use App\Models\Funcionario;
 
 
@@ -20,6 +22,8 @@ Route::get('/funcionarios', Funcionarios::class)->name('funcionarios');
 Route::get('/obras', Obras::class)->name('obras');
 
 Route::get('/materiais', Materiais::class)->name('materiais');
+Route::get('/comprar', Comprar::class)->name('comprar');
+Route::get('/gastos-veiculos', GastosVeiculos::class)->name('gastos.veiculos');
 
 Route::get('/relatorios', RelatoriosMensais::class)->name('relatorios.index');
 Route::get('/relatorios/{relatorio}', RelatorioMensalShow::class)->name('relatorios.show');
