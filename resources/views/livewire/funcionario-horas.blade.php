@@ -354,7 +354,19 @@
                         @endphp
                         <div class="rounded-xl border border-emerald-400/40 bg-emerald-500/5 p-4 text-sm text-slate-200">
                             <div class="flex flex-wrap items-center justify-between gap-2">
-                                <h3 class="text-sm font-semibold text-emerald-200">{{ $pagamento['label'] }}</h3>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-sm font-semibold text-emerald-200">{{ $pagamento['label'] }}</h3>
+                                    <button type="button"
+                                            wire:click="exportarPagamento({{ $pagamento['id'] }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="exportarPagamento"
+                                            class="inline-flex items-center gap-1 rounded-lg border border-emerald-400/50 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-100 transition hover:bg-emerald-500/20 focus:outline-none focus:ring-4 focus:ring-emerald-400/30 disabled:opacity-60">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 8h6m-6 4h6m-7 8h8a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-4.586a2 2 0 0 0-1.414.586l-4 4A2 2 0 0 0 6 9.414V18a2 2 0 0 0 2 2z" />
+                                        </svg>
+                                        Exportar
+                                    </button>
+                                </div>
                                 <span class="text-xs text-slate-400">
                                     {{ $inicioFormatado }} – {{ $fimFormatado }}
                                 </span>

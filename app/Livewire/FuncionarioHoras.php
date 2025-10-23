@@ -5,7 +5,9 @@ namespace App\Livewire;
 use App\Models\Funcionario;
 use App\Models\RegistroHoras;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class FuncionarioHoras extends Component
@@ -33,7 +35,8 @@ class FuncionarioHoras extends Component
     public array $cells = [];
 
     /** @var array<string,bool> */
-    protected array $lockedDatas = [];
+    #[Locked]
+    public array $lockedDatas = [];
 
     protected ?RegistroHoras $rascunho = null;
 
@@ -273,6 +276,133 @@ class FuncionarioHoras extends Component
         $this->syncPeriodo();
 
         session()->flash('message', 'Pagamento registrado com sucesso.');
+    }
+
+    public function exportarPagamento(int $registroId)
+    {
+        $registro = $this->funcionario
+            ->registroHoras()
+            ->where('id', $registroId)
+            ->first();
+
+        if (! $registro || ($registro->status ?? 'closed') === 'draft') {
+            abort(404);
+        }
+
+        $dias = $this->mapRegistroDias($registro);
+        if (empty($dias)) {
+            abort(404);
+        }
+
+        $valorHora = (float) ($registro->valor_hora ?? 0);
+        $totalHoras = 0.0;
+        $diasDetalhados = [];
+
+        foreach ($dias as $data => $horas) {
+            $totalHoras += $horas;
+            try {
+                $dataFormatada = Carbon::parse($data)->format('d/m/Y');
+            } catch (\Throwable $e) {
+                $dataFormatada = $data;
+            }
+
+            $diasDetalhados[] = [
+                'data' => $dataFormatada,
+                'horas' => round($horas, 2),
+                'valor' => round($horas * $valorHora, 2),
+            ];
+        }
+
+        $vales = $this->normalizeVales($registro->vales_detalhes ?? [], (float) ($registro->vale ?? 0));
+        $totalVales = array_sum(array_column($vales, 'valor'));
+
+        $totalCalculado = round($totalHoras * $valorHora - $totalVales, 2);
+        $totalRegistro = round((float) ($registro->total ?? $totalCalculado), 2);
+        if ($totalRegistro === 0.0) {
+            $totalRegistro = $totalCalculado;
+        }
+
+        $pagamentoInfo = collect($this->pagamentos)->firstWhere('id', $registroId);
+        $label = $pagamentoInfo['label'] ?? $this->buildPagamentoLabel($registro, 1);
+
+        $dados = [
+            'funcionario' => $this->funcionario,
+            'pagamento' => [
+                'label' => $label,
+                'periodo_inicio' => $registro->periodo_inicio?->format('d/m/Y'),
+                'periodo_fim' => $registro->periodo_fim?->format('d/m/Y'),
+                'valor_hora' => $valorHora,
+                'total_horas' => round($totalHoras, 2),
+                'total_vales' => round($totalVales, 2),
+                'total' => $totalRegistro,
+                'dias' => $diasDetalhados,
+                'vales' => $vales,
+            ],
+            'logoBase64' => $this->resolverLogoPdf(),
+        ];
+
+        $fileName = sprintf(
+            '%s-%s.pdf',
+            Str::slug($this->funcionario->nome),
+            Str::slug($label)
+        );
+
+        $pdf = app('dompdf.wrapper')->setPaper('a4')->loadView('pdf.pagamento', $dados);
+
+        return response()->streamDownload(static function () use ($pdf) {
+            echo $pdf->output();
+        }, $fileName);
+    }
+
+    private function resolverLogoPdf(): ?string
+    {
+        if (! $this->suportaImagensPdf()) {
+            return null;
+        }
+
+        $path = public_path('img/ac-logo-sistema.png');
+        if (! is_string($path) || $path === '' || ! is_file($path)) {
+            return null;
+        }
+
+        return $this->converterImagemParaDataUri($path);
+    }
+
+    private function suportaImagensPdf(): bool
+    {
+        return extension_loaded('gd') || extension_loaded('imagick');
+    }
+
+    private function converterImagemParaDataUri(string $path): ?string
+    {
+        if (! is_readable($path)) {
+            return null;
+        }
+
+        $contents = @file_get_contents($path);
+        if ($contents === false) {
+            return null;
+        }
+
+        $mime = @mime_content_type($path) ?: null;
+        if ($mime === null) {
+            $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+            $mimeMap = [
+                'png' => 'image/png',
+                'jpg' => 'image/jpeg',
+                'jpeg' => 'image/jpeg',
+                'gif' => 'image/gif',
+                'svg' => 'image/svg+xml',
+                'webp' => 'image/webp',
+            ];
+            $mime = $mimeMap[$extension] ?? null;
+        }
+
+        if ($mime === null) {
+            return null;
+        }
+
+        return 'data:' . $mime . ';base64,' . base64_encode($contents);
     }
 
     public function getDaysInMonthProperty(): int

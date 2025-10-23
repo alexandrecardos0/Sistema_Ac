@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Carbon\Carbon;
 use Livewire\Component;
 use App\Models\Obra;
 use App\Models\Funcionario;
@@ -92,9 +93,7 @@ class Dashboard extends Component
                 ->sum($valorRecebidoColumn);
         }
 
-        $valorFuncionariosMes = (float) RegistroHoras::whereYear('created_at', $ano)
-            ->whereMonth('created_at', $mes)
-            ->sum('total');
+        $valorFuncionariosMes = $this->calcularValorFuncionariosMes($ano, $mes);
 
         $valorAvariasMes = (float) AvariaMaterial::whereYear('created_at', $ano)
             ->whereMonth('created_at', $mes)
@@ -160,6 +159,264 @@ class Dashboard extends Component
             'valorSaidasMes' => $valorSaidasMes,
             'saldoMes' => $saldoMes,
         ])->layout('layouts.app');
+    }
+
+    private function calcularValorFuncionariosMes(int $ano, int $mes): float
+    {
+        $inicioMes = Carbon::create($ano, $mes, 1)->startOfDay();
+        $fimMes = $inicioMes->copy()->endOfMonth();
+
+        $registros = RegistroHoras::query()
+            ->select([
+                'id',
+                'dias_selecionados',
+                'valor_hora',
+                'vales_detalhes',
+                'vale',
+                'mes',
+                'ano',
+                'periodo_inicio',
+                'periodo_fim',
+                'created_at',
+                'status',
+            ])
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere('status', '!=', 'draft');
+            })
+            ->where(function ($query) use ($inicioMes, $fimMes, $ano, $mes) {
+                $prefix = sprintf('%04d-%02d', $ano, $mes);
+                $query->where(function ($q) use ($inicioMes, $fimMes) {
+                    $q->whereNotNull('periodo_inicio')
+                        ->whereNotNull('periodo_fim')
+                        ->where('periodo_inicio', '<=', $fimMes)
+                        ->where('periodo_fim', '>=', $inicioMes);
+                })
+                    ->orWhere('mes', 'like', $prefix . '%')
+                    ->orWhere(function ($q) use ($ano, $mes) {
+                        $q->whereNull('periodo_inicio')
+                            ->whereNull('periodo_fim')
+                            ->whereYear('created_at', $ano)
+                            ->whereMonth('created_at', $mes);
+                    });
+            })
+            ->get();
+
+        $total = 0.0;
+
+        foreach ($registros as $registro) {
+            $dias = $this->mapRegistroDias($registro);
+            $horasPorMesAno = [];
+
+            foreach ($dias as $data => $horas) {
+                try {
+                    $dataCarbon = Carbon::parse($data);
+                } catch (\Throwable $e) {
+                    continue;
+                }
+
+                $key = $dataCarbon->format('Y-m');
+                $horasPorMesAno[$key] = ($horasPorMesAno[$key] ?? 0.0) + $horas;
+            }
+
+            $valorHora = (float) ($registro->valor_hora ?? 0);
+
+            foreach ($horasPorMesAno as $key => $horasMes) {
+                if ($this->matchesMesAno($key, $ano, $mes)) {
+                    $total += $horasMes * $valorHora;
+                }
+            }
+
+            $valesPorMes = $this->mapValesPorMes($registro, array_keys($horasPorMesAno));
+
+            foreach ($valesPorMes as $key => $valorVale) {
+                if ($this->matchesMesAno($key, $ano, $mes)) {
+                    $total -= $valorVale;
+                }
+            }
+        }
+
+        return round($total, 2);
+    }
+
+    /**
+     * @return array<string,float>
+     */
+    private function mapRegistroDias(RegistroHoras $registro): array
+    {
+        $dias = (array) ($registro->dias_selecionados ?? []);
+        $mapped = [];
+
+        foreach ($dias as $dia => $valor) {
+            $data = $this->resolverDataRegistro($registro, $dia);
+            if ($data === null) {
+                continue;
+            }
+
+            $mapped[$data] = round($this->extractHorasValor($valor), 2);
+        }
+
+        ksort($mapped);
+
+        return $mapped;
+    }
+
+    private function resolverDataRegistro(RegistroHoras $registro, $dia): ?string
+    {
+        $diaString = (string) $dia;
+
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $diaString)) {
+            return $diaString;
+        }
+
+        $diaInt = (int) $diaString;
+        if ($diaInt < 1) {
+            $diaInt = 1;
+        }
+
+        $ano = $this->resolverAnoRegistro($registro);
+        $mes = $this->resolverMesRegistro($registro);
+
+        try {
+            $dataBase = Carbon::create($ano, $mes, 1);
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        $diasNoMes = $dataBase->daysInMonth;
+        if ($diaInt > $diasNoMes) {
+            $diaInt = $diasNoMes;
+        }
+
+        return $dataBase->copy()->day($diaInt)->format('Y-m-d');
+    }
+
+    private function resolverAnoRegistro(RegistroHoras $registro): int
+    {
+        if ($registro->ano) {
+            return (int) $registro->ano;
+        }
+
+        if (preg_match('/^(\d{4})-/', (string) $registro->mes, $matches)) {
+            return (int) $matches[1];
+        }
+
+        if ($registro->periodo_inicio) {
+            return (int) $registro->periodo_inicio->year;
+        }
+
+        if ($registro->periodo_fim) {
+            return (int) $registro->periodo_fim->year;
+        }
+
+        return (int) optional($registro->created_at)->year ?? (int) now()->year;
+    }
+
+    private function resolverMesRegistro(RegistroHoras $registro): int
+    {
+        if (preg_match('/^\d{4}-(\d{2})/', (string) $registro->mes, $matches)) {
+            return (int) $matches[1];
+        }
+
+        if (is_numeric($registro->mes)) {
+            $valor = (int) $registro->mes;
+            return max(1, min(12, $valor));
+        }
+
+        if ($registro->periodo_inicio) {
+            return (int) $registro->periodo_inicio->month;
+        }
+
+        if ($registro->periodo_fim) {
+            return (int) $registro->periodo_fim->month;
+        }
+
+        return (int) now()->month;
+    }
+
+    private function extractHorasValor($valor): float
+    {
+        if (is_array($valor)) {
+            $valor = $valor['horas'] ?? ($valor['valor'] ?? ($valor['total'] ?? 0));
+        }
+
+        return (float) $valor;
+    }
+
+    /**
+     * @param array<int,string> $horasKeys
+     * @return array<string,float>
+     */
+    private function mapValesPorMes(RegistroHoras $registro, array $horasKeys): array
+    {
+        $resultado = [];
+        $detalhes = $registro->vales_detalhes;
+
+        if (is_array($detalhes) && ! empty($detalhes)) {
+            foreach ($detalhes as $vale) {
+                if (! is_array($vale)) {
+                    continue;
+                }
+
+                $valor = isset($vale['valor']) ? (float) $vale['valor'] : 0.0;
+                if ($valor <= 0) {
+                    continue;
+                }
+
+                $mesVale = isset($vale['mes']) ? (int) $vale['mes'] : null;
+                $key = $this->matchAnoMesForVale($mesVale, $horasKeys, $registro);
+                $resultado[$key] = ($resultado[$key] ?? 0.0) + round($valor, 2);
+            }
+
+            return $resultado;
+        }
+
+        $valorTotal = (float) ($registro->vale ?? 0.0);
+        if ($valorTotal <= 0) {
+            return $resultado;
+        }
+
+        $key = $this->matchAnoMesForVale(null, $horasKeys, $registro);
+        $resultado[$key] = ($resultado[$key] ?? 0.0) + round($valorTotal, 2);
+
+        return $resultado;
+    }
+
+    /**
+     * @param array<int,string> $horasKeys
+     */
+    private function matchAnoMesForVale(?int $mesVale, array $horasKeys, RegistroHoras $registro): string
+    {
+        if ($mesVale !== null) {
+            foreach ($horasKeys as $key) {
+                if (! is_string($key)) {
+                    continue;
+                }
+
+                $month = (int) substr($key, 5, 2);
+                if ($month === $mesVale) {
+                    return $key;
+                }
+            }
+        }
+
+        if (! empty($horasKeys)) {
+            $first = reset($horasKeys);
+            if (is_string($first)) {
+                return $first;
+            }
+        }
+
+        $ano = $this->resolverAnoRegistro($registro);
+        $mes = $mesVale ?? $this->resolverMesRegistro($registro);
+        $mes = max(1, min(12, $mes));
+
+        return sprintf('%04d-%02d', $ano, $mes);
+    }
+
+    private function matchesMesAno(string $key, int $ano, int $mes): bool
+    {
+        return $key === sprintf('%04d-%02d', $ano, $mes);
     }
 
     private function obraStatusColumn(): ?string
