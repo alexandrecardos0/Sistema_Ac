@@ -33,7 +33,7 @@
         </div>
         <div class="surface-card p-5">
             <h3 class="text-sm font-semibold text-gray-600">Total a receber</h3>
-            <p class="mt-2 text-3xl font-bold text-slate-100">
+            <p class="mt-2 text-3xl font-bold text-gray-900">
                 R$ {{ number_format($this->totalReceber, 2, ',', '.') }}
             </p>
             <p class="mt-1 text-xs text-gray-600">Valor ainda pendente de recebimento</p>
@@ -46,7 +46,7 @@
         </div>
         <div class="surface-card p-5">
             <h3 class="text-sm font-semibold text-gray-600">Valor total das obras</h3>
-            <p class="mt-2 text-3xl font-bold text-slate-100">
+            <p class="mt-2 text-3xl font-bold text-gray-900">
                 R$ {{ number_format($this->valorTotal, 2, ',', '.') }}
             </p>
         </div>

@@ -54,8 +54,8 @@
 
         <!-- Card 1: Obras em andamento -->
         <div class="surface-card p-6">
-            <h3 class="text-slate-400 text-xl font-semibold">Funcionários Ativos</h3>
-            <p class="mt-2 text-2xl font-bold text-slate-100">{{ $funcionarios->count() }}</p>
+            <h3 class="text-gray-600 text-xl font-semibold">Funcionários Ativos</h3>
+            <p class="mt-2 text-2xl font-bold text-gray-900">{{ $funcionarios->count() }}</p>
         </div>
 
         <!-- Card 2: Funcionários -->
@@ -69,10 +69,10 @@
 
         <ul>
             <li class="surface-card mb-5 p-6">
-                <div class="grid grid-cols-3 gap-4 font-semibold text-xl text-slate-300">
+                <div class="grid grid-cols-3 gap-4 font-semibold text-xl text-gray-700">
                     <span>Funcionário</span>
-                    <span class="text-center text-xl text-sky-300">Horas</span>
-                    <span class="text-right pr-36 text-xl text-amber-300">Total a receber</span>
+                    <span class="text-center text-xl text-gray-700">Horas</span>
+                    <span class="text-right pr-36 text-xl text-gray-700">Total a receber</span>
                 </div>
             </li>
         </ul>
@@ -80,10 +80,10 @@
         <ul>
             @forelse($funcionarios as $funcionario)
                 <li class="surface-card mb-5 p-6">
-                    <div class="grid grid-cols-3 gap-4 font-semibold text-slate-300">
-                        <span class="text-slate-100">{{ $funcionario->nome }}</span>
-                        <span class="text-center text-sky-300">{{ $funcionario->total_horas ?? 0 }}h</span>
-                        <div class="flex items-center justify-end text-amber-300 gap-3">
+                    <div class="grid grid-cols-3 gap-4 font-semibold text-gray-700">
+                        <span class="text-gray-900">{{ $funcionario->nome }}</span>
+                        <span class="text-center text-gray-700">{{ $funcionario->total_horas ?? 0 }}h</span>
+                        <div class="flex items-center justify-end text-gray-900 gap-3">
                             <span>R$ {{ number_format($funcionario->total_a_pagar ?? 0, 2, ',', '.') }}</span>
 
                             <img wire:click="deleteFuncionario({{ $funcionario->id }})" wire:confirm="Tem certeza que deseja excluir este funcionário?" src="{{ asset('img/excluir.png') }}" alt="Excluir funcionário" class="w-5 h-5 cursor-pointer">
@@ -96,7 +96,7 @@
                     </div>
                 </li>
             @empty
-                <li class="surface-card mb-5 p-6 text-center text-slate-400">
+                <li class="surface-card mb-5 p-6 text-center text-gray-600">
                     Nenhum funcionário cadastrado até o momento.
                 </li>
             @endforelse

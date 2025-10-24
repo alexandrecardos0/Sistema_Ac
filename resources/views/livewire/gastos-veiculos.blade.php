@@ -95,13 +95,6 @@
                             @enderror
                         </div>
                         <div>
-                            <label class="text-sm font-medium text-slate-300">Veículo</label>
-                            <input type="text" wire:model.defer="veiculo" class="input-dark mt-1 w-full" placeholder="Ex.: Caminhão HR">
-                            @error('veiculo')
-                                <p class="mt-1 text-xs text-red-500">{{ $message }}</p>
-                            @enderror
-                        </div>
-                        <div>
                             <label class="text-sm font-medium text-slate-300">Valor (R$)</label>
                             <input type="text" wire:model.defer="valor" class="input-dark mt-1 w-full" placeholder="Ex.: 450,00" required>
                             @error('valor')

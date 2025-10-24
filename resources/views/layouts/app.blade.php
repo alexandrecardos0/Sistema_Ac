@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin</title>
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     @livewireStyles
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
@@ -28,7 +28,7 @@
                     ['label' => 'Funcionários', 'route' => 'funcionarios', 'href' => route('funcionarios'), 'match' => 'funcionarios*', 'icon' => 'M16 11c1.657 0 3-1.567 3-3.5S17.657 4 16 4s-3 1.567-3 3.5 1.343 3.5 3 3.5zM2 20c0-3.314 4.03-6 9-6s9 2.686 9 6M8 9.5C8 11.433 6.657 13 5 13s-3-1.567-3-3.5S3.343 6 5 6s3 1.567 3 3.5z'],
                     ['label' => 'Materiais', 'route' => 'materiais', 'href' => route('materiais'), 'match' => 'materiais*', 'icon' => 'M4 6h16M4 10h16M4 14h10M4 18h10'],
                     ['label' => 'Compras', 'route' => 'comprar', 'href' => route('comprar'), 'match' => 'comprar*', 'icon' => 'M3 5h12M9 3v2m6 9h4l-2 2l2 2h-4m-2 4H5a2 2 0 0 1-2-2V7h16v7'],
-                    ['label' => 'Veículos', 'route' => 'gastos.veiculos', 'href' => route('gastos.veiculos'), 'match' => 'gastos-veiculos*', 'icon' => 'M3 11l2-2h3l2-3h4l2 3h3l2 2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z'],
+                    ['label' => 'Carro', 'route' => 'gastos.veiculos', 'href' => route('gastos.veiculos'), 'match' => 'gastos-veiculos*', 'icon' => 'M3 11l2-2h3l2-3h4l2 3h3l2 2v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z'],
                     ['label' => 'Relatórios', 'route' => 'relatorios.index', 'href' => route('relatorios.index'), 'match' => 'relatorios*', 'icon' => 'M9 17v-6h6v6m-9 4h12'],
                     ['label' => 'Pagamentos', 'route' => 'relatorios.pagamentos', 'href' => route('relatorios.pagamentos'), 'match' => 'relatorios-pagamentos*', 'icon' => 'M12 8c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 14c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z'],
                 ];

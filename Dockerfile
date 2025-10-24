@@ -30,3 +30,8 @@ WORKDIR /var/www/html
 # Dica: o código é montado via volume no docker-compose.
 # Se quiser build sem volume, descomente e use COPY.
 # COPY . /var/www/html
+
+# Entrypoint para preparar o app automaticamente em "docker compose up -d"
+COPY docker/entrypoint.sh /usr/local/bin/app-entrypoint.sh
+RUN chmod +x /usr/local/bin/app-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/app-entrypoint.sh"]
