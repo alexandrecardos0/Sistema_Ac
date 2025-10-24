@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-3xl font-bold text-teal-300">Gastos com Veículos</h1>
-            <p class="text-sm text-slate-400">
+            <p class="text-sm text-gray-600">
                 Controle despesas de gasolina e manutenção da frota.
             </p>
         </div>
@@ -20,16 +20,16 @@
     @endif
 
     <div class="surface-section">
-        <table class="min-w-full divide-y divide-slate-800/60">
-            <thead class="bg-slate-950/60">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-gray-100">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Tipo</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Veículo</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Valor</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Data</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">KM</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Descrição</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"></th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Tipo</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Veículo</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Valor</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">KM</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Descrição</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600"></th>
                 </tr>
             </thead>
             <tbody class="surface-table">
@@ -39,24 +39,24 @@
                         $badgeClass = $gasto->tipo === 'gasolina' ? 'bg-amber-500/20 text-amber-200' : 'bg-sky-500/20 text-sky-200';
                     @endphp
                     <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-slate-100">
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">
                             <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $badgeClass }}">
                                 {{ $labelTipo }}
                             </span>
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-300">
+                        <td class="px-4 py-3 text-sm text-gray-700">
                             {{ $gasto->veiculo ?: '—' }}
                         </td>
                         <td class="px-4 py-3 text-sm text-emerald-300">
                             R$ {{ number_format((float) $gasto->valor, 2, ',', '.') }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-300">
+                        <td class="px-4 py-3 text-sm text-gray-700">
                             {{ optional($gasto->data_gasto)->format('d/m/Y') ?? '—' }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-300">
+                        <td class="px-4 py-3 text-sm text-gray-700">
                             {{ $gasto->km !== null ? number_format($gasto->km, 0, ',', '.') . ' km' : '—' }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-400">
+                        <td class="px-4 py-3 text-sm text-gray-600">
                             {{ $gasto->descricao ?: '—' }}
                         </td>
                         <td class="px-4 py-3 text-right">
@@ -68,8 +68,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="bg-slate-950/40">
-                        <td colspan="7" class="px-4 py-6 text-center text-sm text-slate-400">
+                    <tr class="bg-gray-50">
+                        <td colspan="7" class="px-4 py-6 text-center text-sm text-gray-600">
                             Nenhum gasto registrado. Clique em “Registrar gasto” para adicionar uma nova entrada.
                         </td>
                     </tr>
@@ -79,9 +79,9 @@
     </div>
 
     @if($isModalOpen)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur">
-            <div class="w-full max-w-2xl rounded-2xl border border-slate-800/70 bg-slate-950/85 p-6 shadow-2xl shadow-slate-950/60">
-                <h2 class="text-xl font-semibold text-slate-100">Registrar gasto de veículo</h2>
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur">
+            <div class="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl">
+                <h2 class="text-xl font-semibold text-gray-900">Registrar gasto de veículo</h2>
                 <form wire:submit.prevent="save" class="mt-4 space-y-4">
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div>
@@ -133,7 +133,7 @@
 
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" wire:click="closeModal"
-                                class="rounded-md border border-slate-700/80 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-900">
+                                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
                             Cancelar
                         </button>
                         <button type="submit"

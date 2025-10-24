@@ -1,0 +1,21 @@
+# Geral
+.git
+.gitignore
+.editorconfig
+node_modules
+vendor
+storage/framework/cache
+storage/framework/sessions
+storage/framework/views
+storage/logs
+bootstrap/cache
+
+# Docker / CI
+.dockerignore
+Dockerfile*
+docker-compose*.yml
+db_data
+
+# OS
+.DS_Store
+Thumbs.db

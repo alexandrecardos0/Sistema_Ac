@@ -12,12 +12,14 @@
             font-family: 'Oswald', sans-serif;
         }
     </style>
+    
 </head>
-<body class="min-h-screen flex bg-slate-950 text-slate-100">
+<body class="min-h-screen flex bg-white">
 
     <!-- Sidebar -->
-    <aside class="menu-lateral w-64 border-r border-slate-800/60 bg-slate-950/80 p-6 backdrop-blur sticky top-0 h-screen overflow-y-auto">
+    <aside class="menu-lateral w-64 border-r border-gray-200 bg-white/80 p-6 backdrop-blur sticky top-0 h-screen overflow-y-auto">
         <img src="/img/logo.png" alt="Logo do sistema" class="w-48 mx-auto mb-6">
+
         <nav class="flex flex-col gap-2 text-sm font-medium">
             @php
                 $links = [
@@ -37,8 +39,8 @@
                     $active = request()->routeIs($link['route']) || request()->is($link['match']);
                 @endphp
                 <a href="{{ $link['href'] }}"
-                   class="flex items-center gap-3 rounded-lg px-3 py-2 transition {{ $active ? 'bg-teal-500/20 text-teal-300 shadow-inner shadow-teal-500/10' : 'text-slate-300 hover:bg-slate-900/50 hover:text-white' }}">
-                    <svg class="h-5 w-5 text-teal-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+                   class="flex items-center gap-3 rounded-lg px-3 py-2 transition {{ $active ? 'bg-teal-500/20 text-teal-600 shadow-inner shadow-teal-500/10' : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900' }}">
+                    <svg class="h-5 w-5 text-teal-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="{{ $link['icon'] }}" />
                     </svg>
                     <span>{{ $link['label'] }}</span>
@@ -48,10 +50,11 @@
     </aside>
 
     <!-- Main content -->
-    <main class="flex-1 p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <main class="flex-1 p-8 bg-white">
         {{ $slot }}
     </main>
 
     @livewireScripts
+    
 </body>
 </html>

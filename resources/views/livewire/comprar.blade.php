@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-3xl font-bold text-teal-300">Compras de Materiais</h1>
-            <p class="text-sm text-slate-400">Registre os materiais adquiridos e acompanhe os custos do mês.</p>
+            <p class="text-sm text-gray-600">Registre os materiais adquiridos e acompanhe os custos do mês.</p>
         </div>
         <button wire:click="openModal"
                 class="inline-flex items-center gap-2 rounded-md bg-teal-500/90 px-4 py-2 text-sm font-semibold text-slate-950 shadow-lg shadow-teal-500/30 transition hover:bg-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/40">
@@ -18,31 +18,31 @@
     @endif
 
     <div class="surface-section">
-        <table class="min-w-full divide-y divide-slate-800/60">
-            <thead class="bg-slate-950/60">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-gray-100">
                 <tr>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Material</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Quantidade</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Valor total</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Fornecedor</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Data</th>
-                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Observações</th>
-                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400"></th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Material</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Quantidade</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Valor total</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Fornecedor</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Data</th>
+                    <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Observações</th>
+                    <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600"></th>
                 </tr>
             </thead>
             <tbody class="surface-table">
                 @forelse($compras as $compra)
                     <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-slate-100">{{ $compra->material }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-300">{{ $compra->quantidade }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $compra->material }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">{{ $compra->quantidade }}</td>
                         <td class="px-4 py-3 text-sm text-emerald-300">
                             R$ {{ number_format((float) $compra->valor_total, 2, ',', '.') }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-300">{{ $compra->fornecedor ?: '—' }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-300">
+                        <td class="px-4 py-3 text-sm text-gray-700">{{ $compra->fornecedor ?: '—' }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-700">
                             {{ optional($compra->data_compra)->format('d/m/Y') ?? '—' }}
                         </td>
-                        <td class="px-4 py-3 text-sm text-slate-400">
+                        <td class="px-4 py-3 text-sm text-gray-600">
                             {{ $compra->observacoes ?: '—' }}
                         </td>
                         <td class="px-4 py-3 text-right">
@@ -54,8 +54,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="bg-slate-950/40">
-                        <td colspan="7" class="px-4 py-6 text-center text-sm text-slate-400">
+                    <tr class="bg-gray-50">
+                        <td colspan="7" class="px-4 py-6 text-center text-sm text-gray-600">
                             Nenhuma compra registrada ainda. Clique em “Registrar compra” para adicionar a primeira.
                         </td>
                     </tr>
@@ -65,9 +65,9 @@
     </div>
 
     @if($isModalOpen)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur">
-            <div class="w-full max-w-2xl rounded-2xl border border-slate-800/70 bg-slate-950/85 p-6 shadow-2xl shadow-slate-950/60">
-                <h2 class="text-xl font-semibold text-slate-100">Registrar compra</h2>
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur">
+            <div class="w-full max-w-2xl rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl">
+                <h2 class="text-xl font-semibold text-gray-900">Registrar compra</h2>
                 <form wire:submit.prevent="save" class="mt-4 space-y-4">
                     <div class="grid gap-3 sm:grid-cols-2">
                         <div class="sm:col-span-2">
@@ -116,7 +116,7 @@
 
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" wire:click="closeModal"
-                                class="rounded-md border border-slate-700/80 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-900">
+                                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
                             Cancelar
                         </button>
                         <button type="submit"

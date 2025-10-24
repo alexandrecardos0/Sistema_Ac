@@ -18,27 +18,27 @@
     @endif
 
     <div class="surface-section">
-        <table class="min-w-full divide-y divide-slate-800/60">
-            <thead class="bg-slate-950/60">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-gray-100">
                 <tr>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Material</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Valor do conserto</th>
-                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-400">Descrição</th>
-                    <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-400">Registrado em</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Material</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Valor do conserto</th>
+                    <th scope="col" class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">Descrição</th>
+                    <th scope="col" class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">Registrado em</th>
                     <th scope="col" class="px-4 py-3"></th>
                 </tr>
             </thead>
             <tbody class="surface-table">
                 @forelse($avarias as $avaria)
                     <tr>
-                        <td class="px-4 py-3 text-sm font-medium text-slate-100">{{ $avaria->material }}</td>
+                        <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $avaria->material }}</td>
                         <td class="px-4 py-3 text-sm text-slate-300">
                             R$ {{ number_format((float) $avaria->valor_conserto, 2, ',', '.') }}
                         </td>
                         <td class="px-4 py-3 text-sm text-slate-400">
                             {{ $avaria->descricao ?: '—' }}
                         </td>
-                        <td class="px-4 py-3 text-right text-xs text-slate-500">
+                        <td class="px-4 py-3 text-right text-xs text-gray-500">
                             {{ optional($avaria->created_at)->format('d/m/Y H:i') }}
                         </td>
                         <td class="px-4 py-3 text-right">
@@ -50,8 +50,8 @@
                         </td>
                     </tr>
                 @empty
-                    <tr class="bg-slate-950/40">
-                        <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-400">
+                    <tr class="bg-gray-50">
+                        <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-600">
                             Nenhum registro encontrado. Clique em “Adicionar avaria” para cadastrar o primeiro.
                         </td>
                     </tr>
@@ -61,9 +61,9 @@
     </div>
 
     @if($isModalOpen)
-        <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur">
-            <div class="w-full max-w-lg rounded-2xl border border-slate-800/70 bg-slate-950/85 p-6 shadow-2xl shadow-slate-950/60">
-                <h2 class="text-xl font-semibold text-slate-100">Registrar avaria</h2>
+        <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/60 px-4 backdrop-blur">
+            <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-6 shadow-2xl">
+                <h2 class="text-xl font-semibold text-gray-900">Registrar avaria</h2>
                 <form wire:submit.prevent="save" class="mt-4 space-y-4">
                     <div>
                         <label class="text-sm font-medium text-slate-300">Material</label>
@@ -95,7 +95,7 @@
 
                     <div class="flex items-center justify-end gap-3">
                         <button type="button" wire:click="closeModal"
-                                class="rounded-md border border-slate-700/80 px-4 py-2 text-sm font-semibold text-slate-300 transition hover:bg-slate-900">
+                                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
                             Cancelar
                         </button>
                         <button type="submit"
