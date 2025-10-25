@@ -10,6 +10,8 @@ class RelatoriosPagamentos extends Component
 {
     public int $ano;
     public ?int $mes = null;
+    public string $busca = '';
+    public array $sugestoes = [];
 
     /**
      * @var array<int>
@@ -42,10 +44,39 @@ class RelatoriosPagamentos extends Component
         $this->mes = $value ? (int) $value : null;
     }
 
+    public function updatedBusca($value): void
+    {
+        $termo = trim((string) $value);
+        if ($termo === '') {
+            $this->sugestoes = [];
+            return;
+        }
+
+        $this->sugestoes = Funcionario::query()
+            ->select('nome')
+            ->where('nome', 'like', '%' . $termo . '%')
+            ->orderBy('nome')
+            ->limit(5)
+            ->pluck('nome')
+            ->toArray();
+    }
+
+    public function selecionarSugestao(int $index): void
+    {
+        if (! isset($this->sugestoes[$index])) {
+            return;
+        }
+
+        $this->busca = $this->sugestoes[$index] ?? '';
+        $this->sugestoes = [];
+    }
+
     public function resetFiltros(): void
     {
         $this->ano = $this->anosDisponiveis[0] ?? now()->year;
         $this->mes = null;
+        $this->busca = '';
+        $this->sugestoes = [];
     }
 
     public function getMesesProperty(): array
@@ -71,12 +102,17 @@ class RelatoriosPagamentos extends Component
         $ano = $this->ano;
         $mes = $this->mes;
 
+        $busca = trim($this->busca);
+
         return Funcionario::with(['registroHoras' => function ($query) use ($ano, $mes) {
                 $query->whereYear('created_at', $ano);
                 if ($mes) {
                     $query->whereMonth('created_at', $mes);
                 }
             }])
+            ->when($busca !== '', function ($query) use ($busca) {
+                $query->where('nome', 'like', '%' . $busca . '%');
+            })
             ->orderBy('nome')
             ->get()
             ->map(function (Funcionario $funcionario) use ($ano, $mes) {

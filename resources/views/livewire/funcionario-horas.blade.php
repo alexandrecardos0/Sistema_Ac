@@ -12,9 +12,9 @@
                     </p>
                 </div>
                 <div class="text-right text-sm text-slate-200">
-                    <p>Pagamentos registrados</p>
+                    <p>Total a pagar</p>
                     <p class="text-2xl font-semibold text-emerald-400">
-                        R$ {{ number_format($this->valorTotalPagamentos, 2, ',', '.') }}
+                        R$ {{ number_format($this->valorTotalPagar, 2, ',', '.') }}
                     </p>
                     <p class="text-xs text-slate-400">
                         Horas em aberto: {{ number_format($this->totalHorasAbertas, 2, ',', '.') }}

@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Models\Obra;
+use App\Models\ObraRecebimento;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -18,14 +20,16 @@ class Obras extends Component
 
     public string $nome = '';
     public string $status = Obra::STATUS_ANDAMENTO;
-    public string $valorReceber = '';
     public string $horasTrabalhadas = '';
     public string $descricao = '';
     public string $endereco = '';
 
     public ?Obra $obraBeingEdited = null;
-    public string $valorRecebidoEdit = '';
     public string $statusEdit = '';
+    public string $novoRecebimentoValor = '';
+    public string $novoRecebimentoData = '';
+    /** @var array<int,array{id:int,valor:float,data:string|null}> */
+    public array $recebimentos = [];
 
     /** @var array<string,array{name:string,type:string,null:bool,default:mixed}> */
     private array $columnsMeta = [];
@@ -145,29 +149,21 @@ class Obras extends Component
         $validated = $this->validate([
             'nome' => ['required', 'string', 'max:255'],
             'status' => $statusRule,
-            'valorReceber' => ['nullable', 'string'],
             'horasTrabalhadas' => ['nullable', 'string'],
             'descricao' => ['nullable', 'string'],
             'endereco' => ['nullable', 'string', 'max:255'],
         ], [], [
             'nome' => 'nome da obra',
             'status' => 'status',
-            'valorReceber' => 'valor a receber',
             'horasTrabalhadas' => 'horas trabalhadas',
             'descricao' => 'descrição',
             'endereco' => 'endereço',
         ]);
 
-        $valor = $this->normalizeNumber($validated['valorReceber'] ?? '');
         $horas = $this->normalizeNumber($validated['horasTrabalhadas'] ?? '');
 
-        if ($valor < 0) {
-            throw ValidationException::withMessages([
-                'valorReceber' => 'O valor não pode ser negativo.',
-            ]);
-        }
-
         $horas = max($horas, 0);
+        $valor = 0.0;
 
         $payload = [
             'nome' => $validated['nome'],
@@ -251,7 +247,9 @@ class Obras extends Component
         $obra->valor_pendente_display = round($valorPendente, 2);
 
         $this->obraBeingEdited = $obra;
-        $this->valorRecebidoEdit = $this->formatNumber($obra->valor_recebido_display);
+        $this->novoRecebimentoValor = '';
+        $this->novoRecebimentoData = now()->toDateString();
+        $this->carregarRecebimentos($obra);
         $statusOptions = $this->statuses;
         if ($this->statusColumnAllowsString() && ($statusColumn = $this->statusColumn()) && !empty($statusOptions)) {
             $current = $obra->{$statusColumn} ?? null;
@@ -270,8 +268,10 @@ class Obras extends Component
     {
         $this->showEditModal = false;
         $this->obraBeingEdited = null;
-        $this->valorRecebidoEdit = '';
         $this->statusEdit = '';
+        $this->novoRecebimentoValor = '';
+        $this->novoRecebimentoData = '';
+        $this->recebimentos = [];
     }
 
     public function updateValores(): void
@@ -280,21 +280,7 @@ class Obras extends Component
             return;
         }
 
-        if (! $valorRecebidoColumn = $this->valorRecebidoColumn()) {
-            session()->flash('message', 'Não há coluna configurada para registrar valores recebidos nesta base de dados.');
-            return;
-        }
-
-        $valorRecebido = $this->normalizeNumber($this->valorRecebidoEdit);
-        if ($valorRecebido < 0) {
-            throw ValidationException::withMessages([
-                'valorRecebidoEdit' => 'O valor recebido não pode ser negativo.',
-            ]);
-        }
-
-        $payload = [
-            $valorRecebidoColumn => $valorRecebido,
-        ];
+        $payload = [];
 
         if ($this->statusColumnAllowsString() && ($statusColumn = $this->statusColumn())) {
             $options = $this->statuses;
@@ -303,12 +289,56 @@ class Obras extends Component
             }
         }
 
-        $this->obraBeingEdited->update($payload);
-
-        session()->flash('message', 'Valores da obra atualizados com sucesso.');
+        if (! empty($payload)) {
+            $this->obraBeingEdited->update($payload);
+            session()->flash('message', 'Dados da obra atualizados com sucesso.');
+        }
 
         $this->closeEditModal();
         $this->loadObras();
+    }
+
+    public function adicionarRecebimento(): void
+    {
+        if (! $this->obraBeingEdited) {
+            return;
+        }
+
+        $valor = $this->normalizeNumber($this->novoRecebimentoValor);
+        if ($valor <= 0) {
+            throw ValidationException::withMessages([
+                'novoRecebimentoValor' => 'Informe um valor positivo para registrar o recebimento.',
+            ]);
+        }
+
+        $dataInput = $this->novoRecebimentoData !== ''
+            ? $this->novoRecebimentoData
+            : now()->toDateString();
+
+        try {
+            $data = Carbon::parse($dataInput)->toDateString();
+        } catch (\Throwable $e) {
+            throw ValidationException::withMessages([
+                'novoRecebimentoData' => 'Informe uma data válida para o recebimento.',
+            ]);
+        }
+
+        ObraRecebimento::create([
+            'obra_id' => $this->obraBeingEdited->id,
+            'valor' => round($valor, 2),
+            'data' => $data,
+        ]);
+
+        $this->obraBeingEdited->refresh();
+        $this->sincronizarValorRecebido($this->obraBeingEdited);
+
+        $this->loadObras();
+        $this->openEditModal($this->obraBeingEdited->id);
+
+        $this->novoRecebimentoValor = '';
+        $this->novoRecebimentoData = $data;
+
+        session()->flash('message', 'Recebimento lançado com sucesso.');
     }
 
     public function deleteObra(int $obraId): void
@@ -319,6 +349,22 @@ class Obras extends Component
             session()->flash('message', 'Obra excluída com sucesso.');
             $this->loadObras();
         }
+    }
+
+    private function carregarRecebimentos(Obra $obra): void
+    {
+        $this->recebimentos = $obra->recebimentos()
+            ->orderByDesc('data')
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (ObraRecebimento $recebimento) {
+                return [
+                    'id' => $recebimento->id,
+                    'valor' => round((float) $recebimento->valor, 2),
+                    'data' => $recebimento->data ? $recebimento->data->format('d/m/Y') : null,
+                ];
+            })
+            ->toArray();
     }
 
     private function loadObras(): void
@@ -376,11 +422,23 @@ class Obras extends Component
         });
     }
 
+    private function sincronizarValorRecebido(Obra $obra): void
+    {
+        $valorRecebidoColumn = $this->valorRecebidoColumn();
+        if (! $valorRecebidoColumn) {
+            return;
+        }
+
+        $total = (float) $obra->recebimentos()->sum('valor');
+        $obra->update([
+            $valorRecebidoColumn => round($total, 2),
+        ]);
+    }
+
     private function resetCreateForm(): void
     {
         $this->nome = '';
         $this->status = array_key_first($this->statuses) ?? Obra::STATUS_ANDAMENTO;
-        $this->valorReceber = '';
         $this->horasTrabalhadas = '';
         $this->descricao = '';
         $this->endereco = '';

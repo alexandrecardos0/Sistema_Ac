@@ -26,4 +26,9 @@ class Obra extends Model
             self::STATUS_CONCLUIDA => 'Concluída',
         ];
     }
+
+    public function recebimentos()
+    {
+        return $this->hasMany(ObraRecebimento::class);
+    }
 }

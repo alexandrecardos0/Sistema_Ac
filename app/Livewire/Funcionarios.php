@@ -20,38 +20,69 @@ class Funcionarios extends Component
 
     public function loadFuncionarios()
     {
-        $this->funcionarios = Funcionario::with('registroHoras')
+        $this->funcionarios = Funcionario::with(['registroHoras' => function ($query) {
+                $query->orderByDesc('created_at');
+            }])
             ->get()
             ->map(function (Funcionario $funcionario) {
-                $totalHoras = $funcionario->registroHoras->reduce(
-                    function (float $carry, $registro) {
-                        $dias = $registro->dias_selecionados ?? [];
-                        if (!is_array($dias)) {
-                            return $carry;
-                        }
+                $valorHoraAtual = null;
+                $totalAberto = 0.0;
+                $totalHoraspagas = 0.0;
 
-                        $horasNoMes = 0.0;
+                foreach ($funcionario->registroHoras as $registro) {
+                    $status = $registro->status ?? 'closed';
+                    $valorHoraRegistro = $registro->valor_hora ?? null;
+                    if ($valorHoraRegistro) {
+                        $valorHoraAtual = (float) $valorHoraRegistro;
+                    }
+
+                    if ($status === 'draft') {
+                        $dias = (array) ($registro->dias_selecionados ?? []);
+                        $horas = 0.0;
                         foreach ($dias as $valor) {
                             if (is_array($valor)) {
                                 $valor = $valor['horas'] ?? ($valor['valor'] ?? ($valor['total'] ?? 0));
                             }
-
-                            $numero = (float) str_replace(',', '.', (string) $valor);
-                            if (is_finite($numero) && $numero > 0) {
-                                $horasNoMes += $numero;
+                            $numero = (float) $valor;
+                            if ($numero > 0) {
+                                $horas += $numero;
                             }
                         }
+                        $valesDetalhes = is_array($registro->vales_detalhes ?? null)
+                            ? $registro->vales_detalhes
+                            : [];
+                        $totalVales = array_sum(array_map(function ($vale) {
+                            $valor = $vale['valor'] ?? 0;
+                            return is_numeric($valor) ? (float) $valor : 0.0;
+                        }, $valesDetalhes));
 
-                        return $carry + $horasNoMes;
-                    },
-                    0.0
-                );
+                        $totalAberto += max(0, $horas * ($valorHoraAtual ?? 0) - $totalVales);
+                        continue;
+                    }
 
-                $funcionario->total_horas = round($totalHoras, 2);
-                $funcionario->total_a_pagar = round(
-                    (float) $funcionario->registroHoras->sum('total'),
+                    $totalHoraspagas += (float) ($registro->total ?? 0);
+                }
+
+                $funcionario->total_horas = round(
+                    $funcionario->registroHoras->reduce(function ($carry, $registro) {
+                        $dias = (array) ($registro->dias_selecionados ?? []);
+                        foreach ($dias as $valor) {
+                            if (is_array($valor)) {
+                                $valor = $valor['horas'] ?? ($valor['valor'] ?? ($valor['total'] ?? 0));
+                            }
+                            $numero = (float) $valor;
+                            if ($numero > 0) {
+                                $carry += $numero;
+                            }
+                        }
+                        return $carry;
+                    }, 0.0),
                     2
                 );
+
+                $funcionario->total_pago = round($totalHoraspagas, 2);
+                $funcionario->total_aberto = round($totalAberto, 2);
+                $funcionario->total_a_pagar = round($totalHoraspagas + $totalAberto, 2);
 
                 return $funcionario;
             })
@@ -87,9 +118,32 @@ class Funcionarios extends Component
 
     public function getTotalGeralPagarProperty()
     {
-        return $this->funcionarios->sum(function ($funcionario) {
-            return $funcionario->total_a_pagar ?? 0;
-        });
+        return round(
+            $this->funcionarios->sum(function ($funcionario) {
+                return $funcionario->total_a_pagar ?? 0;
+            }),
+            2
+        );
+    }
+
+    public function getTotalGeralPagoProperty()
+    {
+        return round(
+            $this->funcionarios->sum(function ($funcionario) {
+                return $funcionario->total_pago ?? 0;
+            }),
+            2
+        );
+    }
+
+    public function getTotalGeralAbertoProperty()
+    {
+        return round(
+            $this->funcionarios->sum(function ($funcionario) {
+                return $funcionario->total_aberto ?? 0;
+            }),
+            2
+        );
     }
 
     public function deleteFuncionario($id)

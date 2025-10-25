@@ -6,6 +6,26 @@
         </div>
 
         <div class="flex flex-wrap items-end gap-3">
+            <div class="flex-1 min-w-[200px] relative">
+                <label class="text-xs font-semibold uppercase tracking-wide text-gray-600">Buscar por nome</label>
+                <input type="text"
+                       wire:model.live.debounce.300ms="busca"
+                       placeholder="Digite o nome do funcionário"
+                       class="input-dark mt-1 w-full focus:border-teal-400 focus:ring-teal-500/40" />
+                @if(!empty($sugestoes))
+                    <ul class="absolute z-10 mt-1 w-full rounded-xl border border-slate-700 bg-slate-900/95 text-sm text-slate-100 shadow-lg">
+                        @foreach($sugestoes as $index => $sugestao)
+                            <li>
+                                <button type="button"
+                                        wire:click="selecionarSugestao({{ $index }})"
+                                        class="block w-full px-3 py-2 text-left hover:bg-teal-500/20">
+                                    {{ $sugestao }}
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
             <div>
                 <label class="text-xs font-semibold uppercase tracking-wide text-gray-600">Ano</label>
                 <select wire:model="ano"

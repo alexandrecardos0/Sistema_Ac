@@ -473,6 +473,12 @@ class FuncionarioHoras extends Component
         return round($sum, 2);
     }
 
+    public function getValorTotalPagarProperty(): float
+    {
+        $aberto = max(0, $this->valorEstimadoAberto);
+        return round($this->valorTotalPagamentos + $aberto, 2);
+    }
+
     public function getTotalValesProperty(): float
     {
         $sum = 0.0;

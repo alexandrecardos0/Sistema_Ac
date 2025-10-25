@@ -58,7 +58,7 @@
             <p class="mt-2 text-2xl font-bold text-gray-900">{{ $funcionarios->count() }}</p>
         </div>
 
-        <!-- Card 2: Funcionários -->
+        <!-- Card 2: Total a pagar -->
         <div class="surface-card p-6">
             <h3 class="text-slate-400 text-xl font-semibold">Total a pagar</h3>
             <p class="mt-2 text-2xl font-bold text-amber-300">R$ {{ number_format($this->totalGeralPagar, 2, ',', '.') }}</p>
@@ -66,16 +66,6 @@
     </div>
 
     <div class="mt-5">
-
-        <ul>
-            <li class="surface-card mb-5 p-6">
-                <div class="grid grid-cols-3 gap-4 font-semibold text-xl text-gray-700">
-                    <span>Funcionário</span>
-                    <span class="text-center text-xl text-gray-700">Horas</span>
-                    <span class="text-right pr-36 text-xl text-gray-700">Total a receber</span>
-                </div>
-            </li>
-        </ul>
 
         <ul>
             @forelse($funcionarios as $funcionario)
